@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>TIP191 Personal Message</title>
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-12 col-sm-8 col-sm-push-2">
+          <h1 class="text-center">TIP191 Personal Message Test</h1>
+          <hr/>
+          <br/>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>The TRONVerifyPersonalSignature contract has been deployed at:</div>
+        <div><b id="contractAddress"></b></div>
+      </div>
+      <p></p>
+      <p></p>
+      <div class="row" style="display:flex; flex-direction:column; gap:16px; max-width:500px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <label style="min-width:140px;">signer address:</label>
+          <input id="signer_address" value="" style="flex:1; padding:6px 10px;" />
+        </div>
+
+        <div style="display:flex; align-items:center; gap:12px;">
+          <label style="min-width:140px;">to address:</label>
+          <input id="to_address" value="" style="flex:1; padding:6px 10px;" />
+        </div>
+
+        <div style="display:flex; align-items:center; gap:12px;">
+          <label style="min-width:140px;">amount:</label>
+          <input id="amount" value="" style="flex:1; padding:6px 10px;" />
+        </div>
+
+        <div style="display:flex; align-items:center; gap:12px;">
+          <label style="min-width:140px;">message:</label>
+          <input id="message" value="" style="flex:1; padding:6px 10px;" />
+        </div>
+
+        <div style="display:flex; align-items:center; gap:12px;">
+          <label style="min-width:140px;">nonce:</label>
+          <input id="nonce" value="" style="flex:1; padding:6px 10px;" />
+        </div>
+
+        <div style="display:flex; align-items:center; gap:12px;">
+          <label style="min-width:140px;">signature:</label>
+          <input id="signature" value="" style="flex:1; padding:6px 10px;" />
+        </div>
+
+        <button id="get_message_hash" style="margin-top:8px; padding:10px 0;">
+          Get Message Hash
+        </button>
+
+        <button id="sign_with_tronweb" style="margin-top:8px; padding:10px 0;">
+          Sign with tronWeb
+        </button>
+
+        <button id="verify_sig" style="margin-top:8px; padding:10px 0;">
+          Verify TIP191 signature
+        </button>
+
+        <p id="loading" style="display:none; padding-top:10px;">
+          Waiting to complete the transaction
+          <img src="img/spinner.svg" style="width:20px; vertical-align:middle;" />
+        </p>
+
+        <p id="message" style="padding-top:10px;">
+          hash: <b id="messageHash"></b>
+        </p>
+
+        <p id="result" style="display:none; padding-top:10px;">
+          result: <b id="resResult"></b>
+        </p>
+
+      </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/tronweb.js"></script>
+    <script src="js/personal-config.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
