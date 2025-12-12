@@ -3,7 +3,7 @@ let tronWeb
 
 try {
   contractAddress = personalSigConfig.contractAddress
-  console.log(personalSigConfig.privateKey);
+
   tronWeb = new TronWeb.TronWeb({
     fullHost: personalSigConfig.fullHost,
     privateKey: personalSigConfig.privateKey
@@ -195,7 +195,7 @@ App = {
     var _signature = $("#signature").val();
     $("#loading").css({display: 'block'});
     $("#verify_sig").attr('disabled', 'disabled');
-    console.log("ZYD 111");
+
     this.triggerContract('verify', [_signer, _to, _amount, _message, _nonce, _signature], function (res)  {
       $("#loading").css({display: 'none'});
       $("#verify_sig").attr('disabled', null);
@@ -213,7 +213,7 @@ App = {
     var _nonce = $("#nonce").val();
     $("#loading").css({display: 'block'});
     $("#get_message_hash").attr('disabled', 'disabled');
-    console.log("ZYD 111");
+
     this.triggerContract('getMessageHash', [_to, _amount, _message, _nonce], function (res)  {
       $("#loading").css({display: 'none'});
       $("#get_message_hash").attr('disabled', null);
@@ -266,7 +266,8 @@ App = {
   },
 
   triggerContract: async function (methodName, args, callback) {
-    let myContract = await tronWeb.contract().at(this.contractAddress)
+    console.log(this.contractAddress)
+    let myContract = await tronWeb.contract(this.abi, this.contractAddress)
 
     var callSend = 'send'
     this.abi.forEach(function (val) {
@@ -274,13 +275,11 @@ App = {
         callSend = /payable/.test(val.stateMutability) ? 'send' : 'call'
       }
     })
-    console.log("ZYD 222");
 
     myContract[methodName](...args)[callSend]({
       feeLimit: this.feeLimit,
       callValue: this.callValue || 0,
     }).then(function (res) {
-      console.log("ZYD 333");
       console.log(res);
       callback && callback(res);
     })
