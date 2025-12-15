@@ -2,7 +2,7 @@ var fs = require('fs')
 var path = require('path')
 var TRONVerifyPersonalSignature = require('../build/contracts/TRONVerifyPersonalSignature')
 
-const tronboxConfig = require('../tronbox').networks;
+const tronboxConfig = require('../tronbox.cjs').networks;
 
 // Auto detect current network (from TronBox CLI or user-defined env)
 const currentNetwork = process.env.TRON_NETWORK || 'nile';
@@ -32,4 +32,4 @@ const personalSigConfig = {
   fullHost: netConf.fullHost
 }
 
-fs.writeFileSync(path.resolve(__dirname, '../src/js/personal-config.js'),`var personalSigConfig = ${JSON.stringify(personalSigConfig, null, 2)}`)
+fs.writeFileSync(path.resolve(__dirname, '../src/js/personal-config.js'),`export const personalSigConfig = ${JSON.stringify(personalSigConfig, null, 2)}`)

@@ -1,5 +1,14 @@
+import TronWeb from 'tronweb';
+import { personalSigConfig } from "./personal-config.js"
+import Trx from '@ledgerhq/hw-app-trx';
+import TransportWebHID from '@ledgerhq/hw-transport-webhid';
+
 var contractAddress
 let tronWeb
+
+const path = "44'/195'/0'/0/0";
+var ledgerHardwareAddress
+var ledgerApp
 
 try {
   contractAddress = personalSigConfig.contractAddress
@@ -12,8 +21,55 @@ try {
   alert('The app looks not configured. Please run `npm run migrate`')
 }
 
+function tweakSignature(sig) {
+    // Remove 0x prefix if present
+    let prefix = "0x";
+    if (sig.startsWith("0x")) {
+        sig = sig.slice(2);
+        prefix = "0x";
+    }
 
-App = {
+    // Ensure the signature has exactly 130 hex chars (65 bytes)
+    if (sig.length < 130) {
+        // Pad the start with zeros
+        sig = sig.padStart(130, "0");
+    }
+
+    // r: first 32 bytes (64 hex chars)
+    const r = sig.slice(0, 64);
+
+    // s: next 32 bytes (64 hex chars)
+    const s = sig.slice(64, 128);
+
+    // v: last byte (2 hex chars)
+    let v = parseInt(sig.slice(128, 130), 16);
+
+    // Tron/Ethereum compatibility:
+    // if v is 0 or 1, convert to 27/28
+    if (v < 27) v += 27;
+
+    // Convert v back to 1-byte hex
+    const vHex = v.toString(16).padStart(2, "0");
+
+    // Return full signature
+    return "0x" + r + s + vHex;
+}
+
+async function initLedger(path) {
+  let transport, app, address;
+  try {
+    transport = await TransportWebHID.create();
+    app = new Trx(transport);
+    address = await app.getAddress(path);
+    console.log(address);
+  } catch (err) {
+    alert('initLedger error:' + err)
+  }
+  console.log("address:", address);
+  return { transport, app, address };
+}
+
+var App = {
   tronWebProvider: null,
   contracts: {},
   accounts: [],
@@ -174,6 +230,11 @@ App = {
     }
   ],
   init: async function () {
+    const {transport, app, address} = await initLedger(path);
+    ledgerHardwareAddress = address.address;
+    console.log("ledgerHardwareAddress:", ledgerHardwareAddress);
+    ledgerApp = app;
+    console.log("ledgerApp:", ledgerApp);
 
     this.accounts = [
       tronWeb.address.fromPrivateKey(personalSigConfig.privateKey)
@@ -207,25 +268,40 @@ App = {
 
   getMessageHash: function () {
     var that = this;
-    var _to = $("#to_address").val();
-    var _amount = $("#amount").val();
-    var _message = $("#message").val();
-    var _nonce = $("#nonce").val();
-    $("#loading").css({display: 'block'});
-    $("#get_message_hash").attr('disabled', 'disabled');
 
-    this.triggerContract('getMessageHash', [_to, _amount, _message, _nonce], function (res)  {
-      $("#loading").css({display: 'none'});
-      $("#get_message_hash").attr('disabled', null);
-      $("#messageHash").html(res.toString());
-      $("#message").show();
-      console.log("getMessageHash result:", res);
+    return new Promise((resolve, reject) => {
+      var _to = $("#to_address").val();
+      var _amount = $("#amount").val();
+      var _message = $("#message").val();
+      var _nonce = $("#nonce").val();
+
+      $("#loading").show();
+      $("#get_message_hash").attr('disabled', true);
+
+      that.triggerContract(
+        'getMessageHash',
+        [_to, _amount, _message, _nonce],
+        function (res) {
+          $("#loading").hide();
+          $("#get_message_hash").attr('disabled', null);
+
+          const hash = res.toString();
+          $("#messageHash").html(hash);
+          $("#message").show();
+
+          resolve(hash);   // keypoint
+        }
+      );
     });
   },
 
   signWithTronweb: async function () {
     var that = this;
     try {
+      // always getMessageHash()
+      await that.getMessageHash();
+
+      document.getElementById("signer_address").value = this.accounts[0];
       const messageHash = $("#messageHash").text().toString();
       console.log(messageHash);
       const bytes = tronWeb.utils.code.hexStr2byteArray(messageHash.replace(/^0x/, ""));
@@ -258,6 +334,47 @@ App = {
     }
   },
 
+  signWithLedgerDevice: async function () {
+    var that = this;
+    try {
+      // always getMessageHash()
+      await that.getMessageHash();
+
+      document.getElementById("signer_address").value = ledgerHardwareAddress;
+      const messageHash = $("#messageHash").text().toString();
+      console.log(messageHash);
+      const bytes = tronWeb.utils.code.hexStr2byteArray(messageHash.replace(/^0x/, ""));
+      console.log(bytes);
+      // show loading + disable button
+      $("#loading").css({display: 'block'});
+      $("#sign_with_tronweb").prop('disabled', true);
+
+      console.log("messageHash:", messageHash);
+      console.log("Buffer.from(bytes).toString(\"hex\"):", Buffer.from(bytes).toString("hex"));
+      // await the signature
+      const ledgerSig = await ledgerApp.signPersonalMessageFullDisplay(path, Buffer.from(bytes).toString("hex"));
+      const sig = tweakSignature(ledgerSig);
+
+      // hide loading + enable button
+      $("#loading").css({display: 'none'});
+      $("#sign_with_tronweb").prop('disabled', false);
+
+      // show result (inspect the sig shape first)
+      console.log("signWithLedgerDevice result:", sig);
+      // if sig is object, stringify it; if it's a hex string, show directly
+      const display = (typeof sig === 'object') ? JSON.stringify(sig, null, 2) : String(sig);
+      $("#result").css({display: 'block'});
+      $("#resResult").html(display);
+
+      $("#signature").val(sig.toString());
+
+    } catch (err) {
+      $("#loading").css({display: 'none'});
+      $("#sign_with_tronweb").prop('disabled', false);
+      console.error("Sign failed:", err);
+      alert("Signing failed: " + (err.message || err));
+    }
+  },
 
   getContract: function (address, callback) {
     tronWeb.getContract(address).then(function (res) {
@@ -314,6 +431,10 @@ App = {
     $(document).on('click', '#sign_with_tronweb', function () {
       that.signWithTronweb();
     });
+
+    $(document).on('click', '#sign_with_ledger', function () {
+      that.signWithLedgerDevice();
+    });
   },
 
   markAdopted: function (adopters, account) {
@@ -334,7 +455,7 @@ App = {
 };
 
 $(function () {
-  $(window).load(function () {
+  $(window).on("load", function () {
     App.init();
   });
 });
