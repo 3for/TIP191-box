@@ -231,7 +231,9 @@ var App = {
   ],
   init: async function () {
     const {transport, app, address} = await initLedger(path);
-    ledgerHardwareAddress = address.address;
+    if (address !== undefined) {
+      ledgerHardwareAddress = address.address;
+    }
     console.log("ledgerHardwareAddress:", ledgerHardwareAddress);
     ledgerApp = app;
     console.log("ledgerApp:", ledgerApp);

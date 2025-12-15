@@ -32,67 +32,105 @@
       </div>
       <p></p>
       <p></p>
-      <div class="row" style="display:flex; flex-direction:column; gap:16px; max-width:500px;">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <label style="min-width:140px;">signer address:</label>
-          <input id="signer_address" value="" style="flex:1; padding:6px 10px;" />
+      <style>
+        .field {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        label {
+          font-weight: 600;
+          font-size: 13px;
+        }
+
+        input, textarea {
+          width: 100%;
+          padding: 6px 8px;
+          font-family: monospace;
+          font-size: 13px;
+          resize: vertical;
+          box-sizing: border-box;
+        }
+
+        textarea {
+          white-space: pre-wrap;
+          word-break: break-all;
+        }
+
+        button {
+          padding: 10px;
+          font-weight: 600;
+        }
+      </style>
+
+      <div class="row" style="
+        display:flex;
+        flex-direction:column;
+        gap:14px;
+        max-width:700px;
+        word-break: break-all;
+      ">
+
+        <!-- signer -->
+        <div class="field">
+          <label>signer address:</label>
+          <input id="signer_address" />
         </div>
 
-        <div style="display:flex; align-items:center; gap:12px;">
-          <label style="min-width:140px;">to address:</label>
-          <input id="to_address" value="" style="flex:1; padding:6px 10px;" />
+        <div class="field">
+          <label>to address:</label>
+          <input id="to_address" />
         </div>
 
-        <div style="display:flex; align-items:center; gap:12px;">
-          <label style="min-width:140px;">amount:</label>
-          <input id="amount" value="" style="flex:1; padding:6px 10px;" />
+        <div class="field">
+          <label>amount:</label>
+          <input id="amount" />
         </div>
 
-        <div style="display:flex; align-items:center; gap:12px;">
-          <label style="min-width:140px;">message:</label>
-          <input id="message" value="" style="flex:1; padding:6px 10px;" />
+        <div class="field">
+          <label>message:</label>
+          <textarea id="message_input"></textarea>
         </div>
 
-        <div style="display:flex; align-items:center; gap:12px;">
-          <label style="min-width:140px;">nonce:</label>
-          <input id="nonce" value="" style="flex:1; padding:6px 10px;" />
+        <div class="field">
+          <label>nonce:</label>
+          <input id="nonce" />
         </div>
 
-        <div style="display:flex; align-items:center; gap:12px;">
-          <label style="min-width:140px;">signature:</label>
-          <input id="signature" value="" style="flex:1; padding:6px 10px;" />
+        <!-- signature -->
+        <div class="field">
+          <label>signature:</label>
+          <textarea id="signature" rows="3" readonly></textarea>
         </div>
 
-        <button id="get_message_hash" style="margin-top:8px; padding:10px 0;">
-          Get Message Hash
-        </button>
+        <!-- buttons -->
+        <button id="get_message_hash">Get Message Hash</button>
+        <button id="sign_with_tronweb">Sign with tronWeb</button>
+        <button id="sign_with_ledger">Sign with ledger device</button>
+        <button id="verify_sig">Verify TIP191 signature</button>
 
-        <button id="sign_with_tronweb" style="margin-top:8px; padding:10px 0;">
-          Sign with tronWeb
-        </button>
-
-        <button id="sign_with_ledger" style="margin-top:8px; padding:10px 0;">
-          Sign with ledger device
-        </button>
-
-        <button id="verify_sig" style="margin-top:8px; padding:10px 0;">
-          Verify TIP191 signature
-        </button>
-
-        <p id="loading" style="display:none; padding-top:10px;">
+        <!-- loading -->
+        <p id="loading" style="display:none;">
           Waiting to complete the transaction
-          <img src="img/spinner.svg" style="width:20px; vertical-align:middle;" />
+          <img src="src/img/spinner.svg" style="width:18px;vertical-align:middle;" />
         </p>
 
-        <p id="message" style="padding-top:10px;">
-          hash: <b id="messageHash"></b>
-        </p>
+        <!-- hash display -->
+        <div id="message" style="display:none;">
+          <label>Message Hash:</label>
+          <pre
+            id="messageHash"
+          ></pre>
+        </div>
 
-        <p id="result" style="display:none; padding-top:10px;">
-          result: <b id="resResult"></b>
-        </p>
-
+        <!-- result -->
+        <div id="result" style="display:none;">
+          <label>Result:</label>
+          <pre id="resResult"></pre>
+        </div>
       </div>
+
     </div>
 
     <!-- import jQuery -->
